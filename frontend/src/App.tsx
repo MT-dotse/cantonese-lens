@@ -1,15 +1,21 @@
 import "./App.css";
 import { useState } from "react";
 
+type VocabularyWord = {
+  chinese: string;
+  jyutping: string;
+  english: string;
+};
 function App() {
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [word, setWord] = useState<VocabularyWord | null>(null);
 
   function handleClick() {
+    setWord(null);
     setLoading(true);
     setError("");
-    setMessage("");
+
     fetch("http://127.0.0.1:8000/analyze", {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -23,19 +29,18 @@ function App() {
         }
         return response.json();
       })
-      .then((data) => setMessage(data.message))
+      .then((data) => setWord(data))
       .catch(() => setError("Could not connect to the server."))
       .finally(() => setLoading(false));
   }
   return (
     <>
       <h1>Cantonese Lens</h1>
-      <h2>蘋果</h2>
-      <p className="pronunciation">ping4 gwo2</p>
-      <p className="translation">Äpple</p>
+      {word && <h2>{word.chinese}</h2>}
+      {word && <p className="pronunciation">{word.jyutping}</p>}
+      {word && <p className="translation">{word.english}</p>}
       <button onClick={handleClick}>Analyze</button>
       {loading && <p>loading...</p>}
-      <p>{message}</p>
       <p>{error}</p>
     </>
   );
