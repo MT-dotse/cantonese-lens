@@ -18,8 +18,7 @@ client = genai.Client()
 
 try:
     response = client.models.generate_content(
-        model="nonexistent-model",
-        # model="gemini-3.5-flash-lite",
+        model="gemini-3.5-flash-lite",
         contents="""
 Translate the English word 'apple' into Cantonese.
 
