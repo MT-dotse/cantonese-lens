@@ -1,4 +1,5 @@
 from google import genai
+from google.genai.errors import APIError
 from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError, Field, ConfigDict
 import json
@@ -15,9 +16,11 @@ class Translation(BaseModel):
 load_dotenv()
 client = genai.Client()
 
-response = client.models.generate_content(
-    model="gemini-3.5-flash-lite",
-    contents="""
+try:
+    response = client.models.generate_content(
+        model="nonexistent-model",
+        # model="gemini-3.5-flash-lite",
+        contents="""
 Translate the English word 'apple' into Cantonese.
 
 Return:
@@ -30,13 +33,10 @@ chinese, jyutping, english
 
 Return only JSON, without explanations.
 """,
-)
+    )
+    if response.text is None:
+        raise ValueError("Gemini returned no text")
 
-if response.text is None:
-    raise ValueError("Gemini returned no text")
-
-try:
-    # word_data = json.loads(response.text)
     word_data = json.loads(response.text)
     translation = Translation.model_validate(word_data)
     chinese = translation.chinese
@@ -48,6 +48,8 @@ try:
     print(english)
 
 
+except APIError:
+    print("Gemini API request failed")
 except json.JSONDecodeError:
     print("Gemini returned invalid JSON")
 except ValidationError:
